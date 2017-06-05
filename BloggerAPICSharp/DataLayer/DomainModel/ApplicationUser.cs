@@ -6,7 +6,8 @@ namespace BloggerAPICSharp.DataLayer.DomainModel
 {
     public class ApplicationUser:IdentityUser
     {
-        
-        public ICollection<Post> Posts { get; set; }   
+
+    public bool IsAdmin { get; }
+    public ICollection<Post> Posts { get; set; }   
     }
 }

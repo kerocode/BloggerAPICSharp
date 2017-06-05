@@ -5,6 +5,8 @@ namespace BloggerAPICSharp.Models
 {
     public class ApplicationUser: IdentityUser
     {
+
+      public bool IsAdmin { get; }
   //      public ApplicationUser()
   //      {
   //      }
