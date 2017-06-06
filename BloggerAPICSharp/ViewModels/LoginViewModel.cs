@@ -7,7 +7,7 @@ using static BloggerAPICSharp.ViewModels.LoginInputViewModel;
 
 namespace BloggerAPICSharp.ViewModels
 {
-  public class LoginViewModel : LoginInputModel
+  public class LoginViewModel : LoginInputViewModel
   {
     public bool AllowRememberLogin { get; set; }
     public bool EnableLocalLogin { get; set; }
