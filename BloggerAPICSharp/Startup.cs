@@ -49,12 +49,11 @@ namespace BloggerAPICSharp
       services.AddIdentityServer(options=> {
         options.UserInteraction.LoginUrl = "/login";
         options.UserInteraction.LogoutUrl = "/logout";
-
-
       })
       .AddConfigurationStore(options => options.UseInMemoryDatabase())
       .AddOperationalStore(options => options.UseInMemoryDatabase())
-      .AddAspNetIdentity<ApplicationUser>();
+      .AddAspNetIdentity<ApplicationUser>()
+      .AddTemporarySigningCredential();
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
