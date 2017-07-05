@@ -4,10 +4,10 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace BloggerAPICSharp.DataLayer.DomainModel
 {
-    public class ApplicationUser:IdentityUser
+    public class ApplicationUser : IdentityUser<Guid>
     {
+    
 
-    public bool IsAdmin { get; }
     public ICollection<Post> Posts { get; set; }   
     }
 }

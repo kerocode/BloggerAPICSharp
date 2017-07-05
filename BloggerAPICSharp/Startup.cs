@@ -10,13 +10,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace BloggerAPICSharp
 {
   public class Startup
   {
     public Startup(IHostingEnvironment env)
-    {
+        {
       var builder = new ConfigurationBuilder()
           .SetBasePath(env.ContentRootPath)
           .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -32,10 +33,11 @@ namespace BloggerAPICSharp
     {
       // Add framework services.
       services.AddMvc();
-      
-      //var connection = @"Server=(localdb)\mssqllocaldb;Database=Blogger.AspNetCore.NewDb;Trusted_Connection=True;";
-      services.AddDbContext<BloggerDbContext>(options => options.UseInMemoryDatabase());
-      services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+
+            var connection = @"Server=(localdb)\mssqllocaldb;Database=Blogger.AspNetCore.NewDb;Trusted_Connection=True;";
+            services.AddEntityFramework()
+                .AddDbContext<BloggerDbContext>(options => options.UseSqlServer(connection));
+      services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
       {
         options.Password.RequireDigit = true;
         options.Password.RequireLowercase = true;
@@ -44,16 +46,16 @@ namespace BloggerAPICSharp
         options.Password.RequiredLength = 6;
 
       })
-      .AddEntityFrameworkStores<BloggerDbContext>()
+      .AddEntityFrameworkStores<BloggerDbContext,Guid>()
       .AddDefaultTokenProviders();
-      services.AddIdentityServer(options=> {
-        options.UserInteraction.LoginUrl = "/login";
-        options.UserInteraction.LogoutUrl = "/logout";
-      })
-      .AddConfigurationStore(options => options.UseInMemoryDatabase())
-      .AddOperationalStore(options => options.UseInMemoryDatabase())
-      .AddAspNetIdentity<ApplicationUser>()
-      .AddTemporarySigningCredential();
+      //services.AddIdentityServer(options=> {
+      //  options.UserInteraction.LoginUrl = "/login";
+      //  options.UserInteraction.LogoutUrl = "/logout";
+      //})
+      //.AddConfigurationStore(options => options.UseInMemoryDatabase())
+      //.AddOperationalStore(options => options.UseInMemoryDatabase())
+      //.AddAspNetIdentity<ApplicationUser>()
+      //.AddTemporarySigningCredential();
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -64,7 +66,7 @@ namespace BloggerAPICSharp
 
       app.UseMvc();
       app.UseIdentity();
-      app.UseIdentityServer();
+      //app.UseIdentityServer();
     }
   }
 }
