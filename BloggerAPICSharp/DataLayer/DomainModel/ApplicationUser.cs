@@ -4,10 +4,11 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace BloggerAPICSharp.DataLayer.DomainModel
 {
-    public class ApplicationUser : IdentityUser<Guid>
+    public class ApplicationUser : IdentityUser
     {
-    
+        public string Password { get; set; }
 
-    public ICollection<Post> Posts { get; set; }   
+        public string firstName { get; set; }
+        public string lastName { get; set; }
     }
 }

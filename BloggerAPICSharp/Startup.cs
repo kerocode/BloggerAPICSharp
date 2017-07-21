@@ -11,33 +11,43 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.AspNetCore.Mvc;
+using System.Text;
+using Microsoft.IdentityModel.Tokens;
 
 namespace BloggerAPICSharp
 {
   public class Startup
   {
-    public Startup(IHostingEnvironment env)
+
+        public Startup(IHostingEnvironment env, IConfigurationRoot _config)
         {
+         
       var builder = new ConfigurationBuilder()
           .SetBasePath(env.ContentRootPath)
           .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
           .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
           .AddEnvironmentVariables();
       Configuration = builder.Build();
+
     }
 
-    public IConfigurationRoot Configuration { get; }
+        public IConfigurationRoot Configuration;
 
     // This method gets called by the runtime. Use this method to add services to the container.
     public void ConfigureServices(IServiceCollection services)
     {
-      // Add framework services.
-      services.AddMvc();
+            services.AddSingleton(Configuration);
+            // Add framework services.
+            services.AddMvc(opt=> 
+            {
+              opt.Filters.Add(new RequireHttpsAttribute());
+            });
 
             var connection = @"Server=(localdb)\mssqllocaldb;Database=Blogger.AspNetCore.NewDb;Trusted_Connection=True;";
             services.AddEntityFramework()
                 .AddDbContext<BloggerDbContext>(options => options.UseSqlServer(connection));
-      services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
+      services.AddIdentity<ApplicationUser, IdentityRole>(options =>
       {
         options.Password.RequireDigit = true;
         options.Password.RequireLowercase = true;
@@ -46,8 +56,13 @@ namespace BloggerAPICSharp
         options.Password.RequiredLength = 6;
 
       })
-      .AddEntityFrameworkStores<BloggerDbContext,Guid>()
+      .AddEntityFrameworkStores<BloggerDbContext>()
       .AddDefaultTokenProviders();
+            services.Configure<IdentityOptions>(
+                config =>
+                {
+
+                });
       //services.AddIdentityServer(options=> {
       //  options.UserInteraction.LoginUrl = "/login";
       //  options.UserInteraction.LogoutUrl = "/logout";
@@ -63,9 +78,23 @@ namespace BloggerAPICSharp
     {
       loggerFactory.AddConsole(Configuration.GetSection("Logging"));
       loggerFactory.AddDebug();
-
-      app.UseMvc();
-      app.UseIdentity();
+            app.UseIdentity();
+            app.UseJwtBearerAuthentication(
+                new JwtBearerOptions()
+                {
+                    AutomaticAuthenticate= true,
+                    AutomaticChallenge=true,
+                    TokenValidationParameters= new Microsoft.IdentityModel.Tokens.TokenValidationParameters()
+                    {
+                        ValidIssuer = Configuration["Token:Issuer"],
+                        ValidAudience = Configuration["Token:Audience"],
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Token:Key"])),
+                        ValidateLifetime = true
+                    }
+                });
+            app.UseMvc();
+    
       //app.UseIdentityServer();
     }
   }

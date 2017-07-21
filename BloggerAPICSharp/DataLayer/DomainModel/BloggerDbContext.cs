@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BloggerAPICSharp.DataLayer.DomainModel
 {
-    public class BloggerDbContext :IdentityDbContext<ApplicationUser, ApplicationRole ,Guid>
+    public class BloggerDbContext :IdentityDbContext<ApplicationUser>
     {
         public BloggerDbContext(DbContextOptions<BloggerDbContext>options):base(options)
         {
