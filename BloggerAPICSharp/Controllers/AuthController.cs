@@ -10,6 +10,7 @@ using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.Extensions.Configuration;
+using BloggerAPICSharp.Manangers;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -23,16 +24,18 @@ namespace BloggerAPICSharp.Controllers
         private readonly UserManager<ApplicationUser> userMgr;
         private readonly IPasswordHasher<ApplicationUser> hasher;
         private readonly IConfigurationRoot config;
-
+        private readonly AuthManager authManager;
         public AuthController(SignInManager<ApplicationUser> _signInMgr,
             UserManager<ApplicationUser> _userMgr,
             IPasswordHasher<ApplicationUser> _hasher,
+            AuthManager _authMgr,
             IConfigurationRoot _config)
         {
             signInMgr = _signInMgr;
             userMgr = _userMgr;
             hasher = _hasher;
             config = _config;
+            authManager = _authMgr;
         }
         // GET: auth/values
         [HttpGet]
@@ -52,48 +55,26 @@ namespace BloggerAPICSharp.Controllers
         [HttpPost("register")]
         public void Post([FromBody]string value)
         {
-        }
 
+        }
+        // POST auth/login
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody]ApplicationUser model)
+        public IActionResult Login([FromBody]ApplicationUser model)
         {
             try
             {
-                var user = await userMgr.FindByNameAsync(model.UserName);
-                if (user != null)
+                var token = authManager.LoginManager(model);
+                if (token != null)
                 {
-                    if (hasher.VerifyHashedPassword(user,user.PasswordHash,model.Password)== PasswordVerificationResult.Success)
-                    {
-                        var claims = new[]
-                        {
-                            new Claim(JwtRegisteredClaimNames.Sub,user.UserName),
-                           new Claim(JwtRegisteredClaimNames.Jti,Guid.NewGuid().ToString())
-                        };
-                        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Token:Key"]));
-                        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-                        var  token = new JwtSecurityToken(
-                            issuer: config["Token:Issuer"],
-                            audience: config["Token:Audience"],
-                            claims: claims,
-                            expires: DateTime.UtcNow.AddMinutes(30),
-                            signingCredentials:creds
-                            );
-                        return Ok(
-                        new
-                        {
-                            token =new JwtSecurityTokenHandler().WriteToken(token),
-                            expiration= token.ValidTo
-                        });
-                    }
+                    return Ok(token);
                 }
+               
             }
             catch (Exception ex)
             {
-
                 throw;
             }
             return BadRequest("user name or password are incorrect");
-
         }
 
 
